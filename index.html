@@ -9,6 +9,10 @@
     <!-- Jwt Decode Library to read user email safely -->
     <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
     
+    <!-- Firebase SDK (Libraries needed for Realtime Database) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    
     <style>
         :root {
             --bg-main: #f0f7ff;
@@ -147,18 +151,6 @@
             border: 1px solid #e2e8f0; border-radius: 10px; outline: none;
         }
         .admin-input:focus { border-color: var(--color-blue); }
-        
-        /* STYLE CHO PHẦN FILE INPUT */
-        .file-input-wrapper {
-            display: flex; flex-direction: column; gap: 4px;
-        }
-        .file-input-label {
-            font-size: 0.8rem; font-weight: 600; color: #64748b; margin-left: 5px;
-        }
-        .admin-file-input {
-            width: 100%; padding: 8px 12px; background: #f8fafc;
-            border: 1px dashed #cbd5e1; border-radius: 10px; outline: none; cursor: pointer;
-        }
         .admin-select { padding: 10px; border-radius: 10px; border: 1px solid #e2e8f0; width: 100%; }
 
         /* LIVE SEARCH & DELETE SECTION */
@@ -170,7 +162,7 @@
             .admin-manage-section { border-left: none; padding-left: 0; border-top: 1px solid #e2e8f0; padding-top: 20px; }
         }
         .delete-search-results {
-            max-height: 200px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 10px; padding: 5px;
+            max-height: 160px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 10px; padding: 5px;
             background: #f8fafc;
         }
         .delete-item {
@@ -314,13 +306,7 @@
             <div class="admin-form">
                 <input type="text" id="newTitle" class="admin-input" placeholder="Game Title (e.g., Subway Surfers)">
                 <input type="text" id="newUrl" class="admin-input" placeholder="HTML5 Game Embed URL">
-                
-                <!-- Khu vực upload file ảnh mới -->
-                <div class="file-input-wrapper">
-                    <span class="file-input-label">Upload Game Cover Image (Bỏ ảnh file):</span>
-                    <input type="file" id="newImgFile" class="admin-file-input" accept="image/*">
-                </div>
-
+                <input type="text" id="newImg" class="admin-input" placeholder="Game Thumbnail Image URL (Link ảnh)">
                 <select id="newSize" class="admin-select">
                     <option value="size-normal">Normal Square</option>
                     <option value="size-vertical">Vertical Rectangle</option>
@@ -373,8 +359,43 @@
 
         const ADMIN_EMAIL = "nkhang00012@gmail.com";
         let isAdmin = false;
+        let myGames = [];
 
-        let myGames = JSON.parse(localStorage.getItem('anplays_games')) || [];
+        // -------------------------------------------------------------
+        // CẤU HÌNH FIREBASE - ĐÃ ĐỒNG BỘ ĐƯỜNG DẪN DATABASE CỦA BẠN
+        // -------------------------------------------------------------
+        const firebaseConfig = {
+            apiKey: "AIzaSyA1...", // Điền API Key thật của bạn vào đây
+            authDomain: "anplays-ce5ef.firebaseapp.com",
+            databaseURL: "https://anplays-ce5ef-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            projectId: "anplays-ce5ef",
+            storageBucket: "anplays-ce5ef.appspot.com",
+            messagingSenderId: "123456789", // Điền Sender ID thật của bạn vào đây
+            appId: "1:123456:web:abcd" // Điền App ID thật của bạn vào đây
+        };
+        // -------------------------------------------------------------
+
+        // Khởi tạo Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database().ref('games');
+
+        // LẮNG NGHE DỮ LIỆU TỪ MÂY REALTIME
+        db.on('value', (snapshot) => {
+            myGames = [];
+            const data = snapshot.val();
+            if (data) {
+                Object.keys(data).forEach(key => {
+                    myGames.push({
+                        id: key, 
+                        title: data[key].title,
+                        url: data[key].url,
+                        img: data[key].img,
+                        size: data[key].size
+                    });
+                });
+            }
+            renderGrid();
+        });
 
         function renderGrid() {
             gameGrid.innerHTML = '';
@@ -402,7 +423,7 @@
 
                 gameGrid.appendChild(card);
             });
-            manageSearch();
+            manageSearch(); 
         }
 
         function manageSearch() {
@@ -418,13 +439,11 @@
             }
 
             filtered.forEach((game) => {
-                const realIndex = myGames.findIndex(g => g.title === game.title && g.url === game.url);
-                
                 const item = document.createElement('div');
                 item.className = 'delete-item';
                 item.innerHTML = `
                     <span>${game.title}</span>
-                    <button class="del-action-btn" onclick="deleteGame(${realIndex})">Delete</button>
+                    <button class="del-action-btn" onclick="deleteGame('${game.id}', '${game.title}')">Delete</button>
                 `;
                 deleteResultsList.appendChild(item);
             });
@@ -457,51 +476,29 @@
             renderGrid();
         }
 
-        // HÀM XỬ LÝ KHI THÊM GAME MỚI CÓ ĐỌC FILE ẢNH
+        // ĐẨY GAME MỚI LÊN THẲNG DATABASE CLOUD
         function addNewGame() {
             const title = document.getElementById('newTitle').value.trim();
             const url = document.getElementById('newUrl').value.trim();
+            const img = document.getElementById('newImg').value.trim();
             const size = document.getElementById('newSize').value;
-            const fileInput = document.getElementById('newImgFile');
 
             if (!title || !url) {
                 alert('Please fill in both Title and Embed URL fields.');
                 return;
             }
 
-            // Nếu admin có chọn file ảnh
-            if (fileInput.files && fileInput.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const base64Img = e.target.result; // Ảnh dạng Base64 chuỗi dài
-                    saveGameData(title, url, base64Img, size);
-                };
-                reader.readAsDataURL(fileInput.files[0]);
-            } else {
-                // Không chọn ảnh thì dùng ảnh mặc định
-                saveGameData(title, url, '', size);
-            }
-        }
-
-        function saveGameData(title, url, imgData, size) {
-            myGames.push({ title, url, img: imgData, size });
-            try {
-                localStorage.setItem('anplays_games', JSON.stringify(myGames));
-            } catch(e) {
-                alert('Kích thước ảnh quá lớn làm đầy bộ nhớ! Vui lòng chọn ảnh nhẹ hơn hoặc dùng link ảnh.');
-            }
-            renderGrid();
+            db.push({ title, url, img, size });
 
             document.getElementById('newTitle').value = '';
             document.getElementById('newUrl').value = '';
-            document.getElementById('newImgFile').value = '';
+            document.getElementById('newImg').value = '';
         }
 
-        function deleteGame(index) {
-            if (confirm(`Are you sure you want to delete "${myGames[index].title}"?`)) {
-                myGames.splice(index, 1);
-                localStorage.setItem('anplays_games', JSON.stringify(myGames));
-                renderGrid();
+        // XÓA GAME KHỎI DATABASE CLOUD
+        function deleteGame(id, title) {
+            if (confirm(`Are you sure you want to delete "${title}"?`)) {
+                db.child(id).remove();
             }
         }
 
@@ -536,8 +533,6 @@
             else if (gameFrame.webkitRequestFullscreen) { gameFrame.webkitRequestFullscreen(); } 
             else if (gameFrame.msRequestFullscreen) { gameFrame.msRequestFullscreen(); }
         }
-
-        renderGrid();
     </script>
 </body>
 </html>
