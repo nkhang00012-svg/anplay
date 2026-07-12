@@ -134,7 +134,6 @@
         }
         .admin-panel h3 { margin-bottom: 15px; color: var(--color-blue); }
         
-        /* Layout chia đôi Admin Dashboard */
         .admin-grid-layout {
             display: grid; grid-template-columns: 2fr 1fr; gap: 20px;
         }
@@ -148,6 +147,18 @@
             border: 1px solid #e2e8f0; border-radius: 10px; outline: none;
         }
         .admin-input:focus { border-color: var(--color-blue); }
+        
+        /* STYLE CHO PHẦN FILE INPUT */
+        .file-input-wrapper {
+            display: flex; flex-direction: column; gap: 4px;
+        }
+        .file-input-label {
+            font-size: 0.8rem; font-weight: 600; color: #64748b; margin-left: 5px;
+        }
+        .admin-file-input {
+            width: 100%; padding: 8px 12px; background: #f8fafc;
+            border: 1px dashed #cbd5e1; border-radius: 10px; outline: none; cursor: pointer;
+        }
         .admin-select { padding: 10px; border-radius: 10px; border: 1px solid #e2e8f0; width: 100%; }
 
         /* LIVE SEARCH & DELETE SECTION */
@@ -159,7 +170,7 @@
             .admin-manage-section { border-left: none; padding-left: 0; border-top: 1px solid #e2e8f0; padding-top: 20px; }
         }
         .delete-search-results {
-            max-height: 160px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 10px; padding: 5px;
+            max-height: 200px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 10px; padding: 5px;
             background: #f8fafc;
         }
         .delete-item {
@@ -233,7 +244,7 @@
         .size-horizontal { grid-column: span 2; grid-row: span 1; }
         .size-vertical { grid-column: span 1; grid-row: span 2; }
 
-        /* THUMBNAIL IMAGE IMAGE */
+        /* THUMBNAIL IMAGE */
         .game-card img {
             width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s;
         }
@@ -303,7 +314,13 @@
             <div class="admin-form">
                 <input type="text" id="newTitle" class="admin-input" placeholder="Game Title (e.g., Subway Surfers)">
                 <input type="text" id="newUrl" class="admin-input" placeholder="HTML5 Game Embed URL">
-                <input type="text" id="newImg" class="admin-input" placeholder="Game Thumbnail Image URL (Link ảnh)">
+                
+                <!-- Khu vực upload file ảnh mới -->
+                <div class="file-input-wrapper">
+                    <span class="file-input-label">Upload Game Cover Image (Bỏ ảnh file):</span>
+                    <input type="file" id="newImgFile" class="admin-file-input" accept="image/*">
+                </div>
+
                 <select id="newSize" class="admin-select">
                     <option value="size-normal">Normal Square</option>
                     <option value="size-vertical">Vertical Rectangle</option>
@@ -372,14 +389,12 @@
                 card.className = `game-card ${game.size}`;
                 card.setAttribute('onclick', `playGame('${game.title.replace(/'/g, "\\'")}', '${game.url}')`);
 
-                // Tạo thẻ ảnh
                 const img = document.createElement('img');
                 img.src = game.img || 'https://images.unsplash.com/photo-1551103782-8ab07afd45c1?w=400';
                 img.alt = game.title;
                 img.loading = "lazy";
                 card.appendChild(img);
 
-                // Tạo thanh chữ tên game ở dưới đáy mờ
                 const titleBar = document.createElement('div');
                 titleBar.className = 'game-title-bar';
                 titleBar.innerText = game.title;
@@ -387,10 +402,9 @@
 
                 gameGrid.appendChild(card);
             });
-            manageSearch(); // Đồng bộ danh sách xóa
+            manageSearch();
         }
 
-        // TÌM KIẾM VÀ XÓA LIVE TRONG ADMIN
         function manageSearch() {
             if (!deleteResultsList) return;
             const query = document.getElementById('searchDelInput').value.toLowerCase().trim();
@@ -443,24 +457,44 @@
             renderGrid();
         }
 
+        // HÀM XỬ LÝ KHI THÊM GAME MỚI CÓ ĐỌC FILE ẢNH
         function addNewGame() {
             const title = document.getElementById('newTitle').value.trim();
             const url = document.getElementById('newUrl').value.trim();
-            const img = document.getElementById('newImg').value.trim();
             const size = document.getElementById('newSize').value;
+            const fileInput = document.getElementById('newImgFile');
 
             if (!title || !url) {
                 alert('Please fill in both Title and Embed URL fields.');
                 return;
             }
 
-            myGames.push({ title, url, img, size });
-            localStorage.setItem('anplays_games', JSON.stringify(myGames));
+            // Nếu admin có chọn file ảnh
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const base64Img = e.target.result; // Ảnh dạng Base64 chuỗi dài
+                    saveGameData(title, url, base64Img, size);
+                };
+                reader.readAsDataURL(fileInput.files[0]);
+            } else {
+                // Không chọn ảnh thì dùng ảnh mặc định
+                saveGameData(title, url, '', size);
+            }
+        }
+
+        function saveGameData(title, url, imgData, size) {
+            myGames.push({ title, url, img: imgData, size });
+            try {
+                localStorage.setItem('anplays_games', JSON.stringify(myGames));
+            } catch(e) {
+                alert('Kích thước ảnh quá lớn làm đầy bộ nhớ! Vui lòng chọn ảnh nhẹ hơn hoặc dùng link ảnh.');
+            }
             renderGrid();
 
             document.getElementById('newTitle').value = '';
             document.getElementById('newUrl').value = '';
-            document.getElementById('newImg').value = '';
+            document.getElementById('newImgFile').value = '';
         }
 
         function deleteGame(index) {
