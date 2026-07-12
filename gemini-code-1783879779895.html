@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>An Plays - GitHub Production Edition</title>
+    <title>An Plays - Production Hub</title>
     <!-- Google Sign-In Library -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <!-- Jwt Decode Library to read user email safely -->
+    <!-- Jwt Decode Library -->
     <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
     
     <style>
@@ -16,7 +16,7 @@
             --color-blue: #0077ff;
             --color-cyan: #00f2fe;
             --text-dark: #1e293b;
-            --border-radius: 20px;
+            --border-radius: 16px;
         }
 
         * {
@@ -28,7 +28,7 @@
 
         body {
             background: var(--bg-main);
-            padding: 20px;
+            padding: 15px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -38,26 +38,19 @@
             overflow-x: hidden;
         }
 
-        /* WAVE BACKGROUND EFFECT */
+        /* BACKGROUND EFFECT */
         .wave-bg {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -1;
-            pointer-events: none;
-            overflow: hidden;
+            z-index: -1; pointer-events: none; overflow: hidden;
         }
         .wave-square {
-            position: absolute;
-            border: 2px solid cubic-bezier(0.1, 0.8, 0.3, 1);
-            border-radius: 15px;
-            opacity: 0;
-            animation: squareWave 8s infinite linear;
+            position: absolute; border: 2px solid cubic-bezier(0.1, 0.8, 0.3, 1);
+            border-radius: 15px; opacity: 0; animation: squareWave 8s infinite linear;
         }
-        .sq1 { width: 120px; height: 120px; left: 10%; top: 20%; border-color: rgba(0, 242, 254, 0.25); animation-delay: 0s; }
+        .sq1 { width: 120px; height: 120px; left: 10%; top: 20%; border-color: rgba(0, 242, 254, 0.25); }
         .sq2 { width: 200px; height: 200px; right: 15%; top: 10%; border-color: rgba(0, 119, 255, 0.15); animation-delay: 2s; }
         .sq3 { width: 80px; height: 80px; left: 25%; bottom: 15%; border-color: rgba(0, 119, 255, 0.2); animation-delay: 4s; }
-        .sq4 { width: 160px; height: 160px; right: 8%; bottom: 25%; border-color: rgba(0, 242, 254, 0.3); animation-delay: 1s; }
-        .sq5 { width: 250px; height: 250px; left: 50%; top: 40%; border-color: rgba(0, 242, 254, 0.15); animation-delay: 5s; }
 
         @keyframes squareWave {
             0% { transform: scale(0.8) rotate(0deg); opacity: 0; }
@@ -65,206 +58,155 @@
             100% { transform: scale(1.4) rotate(45deg); opacity: 0; }
         }
 
-        /* HEADER & AUTH NAVIGATION */
+        /* HEADER */
         header {
-            width: 100%;
-            max-width: 1100px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 25px;
-            padding: 10px 5px;
+            width: 100%; max-width: 1100px;
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 20px; padding: 10px 5px;
         }
-
-        .brand-container {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
-            transition: transform 0.2s ease;
-        }
-        .brand-container:hover { transform: scale(1.03); }
-
-        .web-icon {
-            width: 45px; height: 32px;
-            background: linear-gradient(135deg, var(--color-blue), var(--color-cyan));
-            border-radius: 12px; position: relative;
-            box-shadow: 0 4px 10px rgba(0, 119, 255, 0.3);
-            display: flex; justify-content: space-around; align-items: center; padding: 0 4px;
-        }
-        .web-icon::before { content: '＋'; color: rgba(255, 255, 255, 0.9); font-size: 12px; font-weight: bold; }
-        .web-icon::after { content: '● ●'; color: rgba(255, 255, 255, 0.9); font-size: 8px; letter-spacing: -1px; }
-
+        .brand-container { display: flex; align-items: center; gap: 12px; cursor: pointer; }
         .logo {
-            font-size: 1.8rem; font-weight: 800;
+            font-size: 1.6rem; font-weight: 800;
             background: linear-gradient(135deg, var(--color-blue), #00c6ff);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            letter-spacing: -0.5px;
         }
+        .auth-box { display: flex; align-items: center; gap: 15px; }
+        .user-profile { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+        .user-avatar { width: 35px; height: 35px; border-radius: 50%; border: 2px solid var(--color-cyan); }
+        .logout-btn { background: none; border: none; color: #ff4757; font-weight: 600; cursor: pointer; }
 
-        .auth-box {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        .user-profile {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 600;
-        }
-        .user-avatar {
-            width: 35px; height: 35px; border-radius: 50%;
-            border: 2px solid var(--color-cyan);
-        }
-        .logout-btn {
-            background: none; border: none; color: #ff4757;
-            font-weight: 600; cursor: pointer; font-size: 0.9rem;
-        }
-
-        /* ADMIN CONTROL PANEL */
+        /* ADMIN DASHBOARD */
         .admin-panel {
-            display: none;
-            width: 100%; max-width: 1100px;
-            background: #ffffff; padding: 20px;
-            border-radius: var(--border-radius);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-            margin-bottom: 25px;
+            display: none; width: 100%; max-width: 1100px;
+            background: #ffffff; padding: 20px; border-radius: var(--border-radius);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 25px;
             border: 1px dashed var(--color-blue);
         }
         .admin-panel h3 { margin-bottom: 15px; color: var(--color-blue); }
-        .admin-form { display: flex; flex-wrap: wrap; gap: 10px; }
-        .admin-input {
-            flex: 1; min-width: 200px; padding: 10px 15px;
-            border: 1px solid #e2e8f0; border-radius: 10px; outline: none;
+        
+        .admin-grid-layout {
+            display: grid; grid-template-columns: 2fr 1fr; gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .admin-grid-layout { grid-template-columns: 1fr; }
+        }
+
+        .admin-form { display: flex; flex-direction: column; gap: 10px; }
+        .admin-input, .admin-select {
+            width: 100%; padding: 10px 15px; border: 1px solid #e2e8f0; border-radius: 10px; outline: none;
         }
         .admin-input:focus { border-color: var(--color-blue); }
-        .admin-select { padding: 10px; border-radius: 10px; border: 1px solid #e2e8f0; }
+
+        /* SEARCH & DELETE MANAGEMENT */
+        .admin-manage-section {
+            border-left: 1px solid #e2e8f0; padding-left: 20px;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        @media (max-width: 768px) {
+            .admin-manage-section { border-left: none; padding-left: 0; border-top: 1px solid #e2e8f0; padding-top: 20px; }
+        }
+        .delete-search-results {
+            max-height: 150px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 10px; padding: 5px;
+        }
+        .delete-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 8px; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem;
+        }
+        .delete-item:last-child { border-bottom: none; }
+        .del-action-btn {
+            background: #ff4757; color: white; border: none; padding: 3px 8px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;
+        }
 
         /* GAME PLAYER CONTAINER */
         .game-player-container {
-            display: none;
-            width: 100%; max-width: 960px;
-            background-color: var(--card-bg); padding: 15px;
-            border-radius: var(--border-radius);
-            box-shadow: 0 20px 40px rgba(0, 119, 255, 0.1); margin-bottom: 30px;
+            display: none; width: 100%; max-width: 960px;
+            background-color: var(--card-bg); padding: 12px; border-radius: var(--border-radius);
+            box-shadow: 0 20px 40px rgba(0, 119, 255, 0.1); margin-bottom: 25px;
             border: 1px solid rgba(0, 242, 254, 0.2);
-            animation: smoothPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            animation: smoothPop 0.3s ease;
         }
-        .game-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .game-title { font-size: 1.3rem; font-weight: 700; }
-        .controls-group { display: flex; gap: 8px; }
+        .game-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .game-title { font-size: 1.1rem; font-weight: 700; }
+        .controls-group { display: flex; gap: 6px; }
 
         .btn {
-            color: white; border: none; padding: 8px 16px; border-radius: 12px;
-            cursor: pointer; font-weight: 600; font-size: 0.85rem;
-            transition: all 0.2s; display: flex; align-items: center; gap: 6px;
+            color: white; border: none; padding: 8px 14px; border-radius: 10px;
+            cursor: pointer; font-weight: 600; font-size: 0.8rem; transition: all 0.2s;
         }
-        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
-        .btn:active { transform: translateY(1px); }
-
         .add-btn { background: var(--color-blue); }
         .pause-btn { background: #ff9f43; }
         .resume-btn { background: #10ac84; display: none; }
         .fullscreen-btn { background: var(--color-blue); }
         .close-btn { background: #ff4757; }
 
-        .iframe-wrapper { position: relative; width: 100%; padding-top: 56.25%; background-color: #0f172a; border-radius: 14px; overflow: hidden; }
+        /* COMPATIBLE RESPONSIVE IFRAME (Works great on Mobile + PC) */
+        .iframe-wrapper { position: relative; width: 100%; padding-top: 56.25%; background-color: #0f172a; border-radius: 10px; overflow: hidden; }
         .iframe-wrapper.paused iframe { pointer-events: none; opacity: 0.15; filter: blur(8px); }
-        .pause-overlay { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.8rem; font-weight: 700; color: white; z-index: 5; }
+        .pause-overlay { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.5rem; font-weight: 700; color: white; z-index: 5; }
         .iframe-wrapper.paused .pause-overlay { display: block; }
         .iframe-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
 
-        /* EMPTY STATE GRAPHIC */
-        .empty-state {
-            text-align: center; padding: 60px 20px; font-size: 1.2rem; color: #64748b;
-            grid-column: 1 / -1; width: 100%;
-        }
-
-        /* DYNAMIC GAME GRID */
+        /* GAME GRID */
         .game-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-            grid-auto-rows: 110px;
-            gap: 16px; width: 100%; max-width: 1100px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            grid-auto-rows: 140px; gap: 14px; width: 100%; max-width: 1100px;
+        }
+        @media (max-width: 480px) {
+            .game-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); grid-auto-rows: 110px; gap: 10px; }
         }
 
         .game-card {
-            background-color: var(--card-bg); border-radius: var(--border-radius);
+            background-color: #e2e8f0; border-radius: var(--border-radius);
             overflow: hidden; cursor: pointer; position: relative;
-            border: 1px solid rgba(0, 119, 255, 0.05);
-            box-shadow: 0 8px 16px rgba(0, 68, 187, 0.04);
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-
         .size-normal { grid-column: span 1; grid-row: span 1; }
         .size-large-square { grid-column: span 2; grid-row: span 2; }
         .size-horizontal { grid-column: span 2; grid-row: span 1; }
         .size-vertical { grid-column: span 1; grid-row: span 2; }
 
-        .game-thumb {
-            width: 100%; height: 100%;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            font-weight: 700; font-size: 0.9rem; text-align: center; padding: 10px;
-            color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        /* GAME IMAGE THUMBNAIL */
+        .game-card img {
+            width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s;
         }
+        .game-card:hover img { transform: scale(1.08); }
 
-        .game-card:nth-child(4n+1) .game-thumb { background: linear-gradient(135deg, #0077ff, #00c6ff); }
-        .game-card:nth-child(4n+2) .game-thumb { background: linear-gradient(135deg, #00f2fe, #4facfe); }
-        .game-card:nth-child(4n+3) .game-thumb { background: linear-gradient(135deg, #2575fc, #6a11cb); }
-        .game-card:nth-child(4n+4) .game-thumb { background: linear-gradient(135deg, #00c6ff, #0072ff); }
+        /* TITLE AT THE BOTTOM */
+        .game-title-bar {
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
+            color: white; padding: 25px 8px 6px 8px; font-size: 0.8rem; font-weight: 600;
+            text-overflow: ellipsis; overflow: hidden; white-space: nowrap;
+            pointer-events: none;
+        }
 
         .game-card:hover {
-            transform: translateY(-8px) scale(1.02);
-            box-shadow: 0 12px 24px rgba(0, 242, 254, 0.4);
-            border-color: var(--color-cyan);
+            transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0, 119, 255, 0.25);
         }
-
-        /* TRASH / DELETE GAME BUTTON */
-        .delete-game-btn {
-            display: none;
-            position: absolute; top: 5px; right: 5px;
-            background: rgba(255, 71, 87, 0.9); color: white;
-            border: none; border-radius: 8px; width: 26px; height: 26px;
-            font-size: 0.8rem; cursor: pointer; z-index: 15;
-            align-items: center; justify-content: center;
-            font-weight: bold; transition: background 0.2s;
-        }
-        .delete-game-btn:hover { background: #ff4757; }
+        .empty-state { text-align: center; padding: 40px 20px; color: #64748b; grid-column: 1 / -1; }
 
         @keyframes smoothPop {
-            from { transform: scale(0.9) translateY(20px); opacity: 0; }
-            to { transform: scale(1) translateY(0); opacity: 1; }
+            from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; }
         }
     </style>
 </head>
 <body>
 
-    <!-- BACKGROUND -->
-    <div class="wave-bg">
-        <div class="wave-square sq1"></div>
-        <div class="wave-square sq2"></div>
-        <div class="wave-square sq3"></div>
-        <div class="wave-square sq4"></div>
-        <div class="wave-square sq5"></div>
-    </div>
+    <div class="wave-bg"><div class="wave-square sq1"></div><div class="wave-square sq2"></div><div class="wave-square sq3"></div></div>
 
     <!-- HEADER -->
     <header>
         <div class="brand-container" onclick="closeGame()">
-            <div class="web-icon"></div>
             <div class="logo">An Plays</div>
         </div>
-        
         <div class="auth-box">
-            <!-- Google Sign In Button Container -->
             <div id="g_id_onload"
                  data-client_id="911859776637-gcn2me3p7p6bdfj0kvqnmlv68dp8n82r.apps.googleusercontent.com"
                  data-callback="handleCredentialResponse">
             </div>
             <div id="googleBtn" class="g_id_signin" data-type="standard"></div>
             
-            <!-- Custom UI after logged in -->
             <div id="userMenu" style="display: none;" class="user-profile">
                 <img id="userImg" class="user-avatar" src="" alt="avatar">
                 <span id="userName">User</span>
@@ -273,31 +215,42 @@
         </div>
     </header>
 
-    <!-- ADMIN CONSOLE PANEL (Add Game) -->
+    <!-- ADMIN PANEL -->
     <div class="admin-panel" id="adminPanel">
-        <h3>Admin Dashboard</h3>
-        <div class="admin-form">
-            <input type="text" id="newTitle" class="admin-input" placeholder="Game Title (e.g., Subway Surfers)">
-            <input type="text" id="newUrl" class="admin-input" placeholder="HTML5 Game Embed URL">
-            <input type="text" id="newEmoji" class="admin-input" placeholder="Emoji Icon (e.g., 🕹️, 🏃‍♂️)">
-            <select id="newSize" class="admin-select">
-                <option value="size-normal">Normal Square</option>
-                <option value="size-vertical">Vertical Rectangle</option>
-                <option value="size-horizontal">Horizontal Wide</option>
-                <option value="size-large-square">Big Square (Featured)</option>
-            </select>
-            <button class="btn add-btn" onclick="addNewGame()">＋ Add Game</button>
+        <h3>Admin Console</h3>
+        <div class="admin-grid-layout">
+            <!-- Add Game Form -->
+            <div class="admin-form">
+                <input type="text" id="newTitle" class="admin-input" placeholder="Game Title">
+                <input type="text" id="newUrl" class="admin-input" placeholder="HTML5 Embed URL (Link Game)">
+                <input type="text" id="newImg" class="admin-input" placeholder="Game Image Thumbnail URL (Link Ảnh)">
+                <select id="newSize" class="admin-select">
+                    <option value="size-normal">Normal Square</option>
+                    <option value="size-vertical">Vertical Rectangle</option>
+                    <option value="size-horizontal">Horizontal Wide</option>
+                    <option value="size-large-square">Big Square (Featured)</option>
+                </select>
+                <button class="btn add-btn" onclick="addNewGame()">＋ Add New Game</button>
+            </div>
+            
+            <!-- Live Search & Delete Manager -->
+            <div class="admin-manage-section">
+                <input type="text" id="searchDelInput" class="admin-input" placeholder="🔍 Search game name to delete..." oninput="manageSearch()">
+                <div class="delete-search-results" id="deleteResultsList">
+                    <!-- Dynamic live delete results -->
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- GAME REPLAY SCREEN -->
+    <!-- GAME PLAYER SCREEN -->
     <div class="game-player-container" id="playerContainer">
         <div class="game-header">
             <div class="game-title" id="currentGameTitle">Loading Game...</div>
             <div class="controls-group">
                 <button class="btn pause-btn" id="pauseBtn" onclick="togglePause(true)">⏸ Pause</button>
-                <button class="btn resume-btn" id="resumeBtn" onclick="togglePause(false)">▶ Resume</button>
-                <button class="btn fullscreen-btn" onclick="openFullscreen()">🔲 Fullscreen</button>
+                <button class="btn resume-btn" id="resumeBtn" onclick="togglePause(false)">▶ Play</button>
+                <button class="btn fullscreen-btn" onclick="openFullscreen()">🔲 Full</button>
                 <button class="btn close-btn" onclick="closeGame()">✖ Close</button>
             </div>
         </div>
@@ -308,9 +261,7 @@
     </div>
 
     <!-- PLAY GRID -->
-    <div class="game-grid" id="gameGrid">
-        <!-- Games will be generated dynamically here -->
-    </div>
+    <div class="game-grid" id="gameGrid"></div>
 
     <script>
         const playerContainer = document.getElementById('playerContainer');
@@ -321,44 +272,77 @@
         const resumeBtn = document.getElementById('resumeBtn');
         const gameGrid = document.getElementById('gameGrid');
         const adminPanel = document.getElementById('adminPanel');
+        const deleteResultsList = document.getElementById('deleteResultsList');
 
         const ADMIN_EMAIL = "nkhang00012@gmail.com";
         let isAdmin = false;
 
-        let myGames = JSON.parse(localStorage.getItem('anplays_games')) || [];
+        // Default Sample Game if local storage is empty
+        let myGames = JSON.parse(localStorage.getItem('anplays_games')) || [
+            {
+                title: "Sample Game",
+                url: "https://mario.etgamedev.com/",
+                img: "https://images.unsplash.com/photo-1551103782-8ab07afd45c1?w=400",
+                size: "size-normal"
+            }
+        ];
 
         function renderGrid() {
             gameGrid.innerHTML = '';
-            
             if (myGames.length === 0) {
-                gameGrid.innerHTML = `<div class="empty-state">No games added yet. ${isAdmin ? 'Use the dashboard above to upload!' : 'Waiting for admin to publish games.'}</div>`;
+                gameGrid.innerHTML = `<div class="empty-state">No games available. ${isAdmin ? 'Add games above!' : ''}</div>`;
                 return;
             }
 
-            myGames.forEach((game, index) => {
+            myGames.forEach((game) => {
                 const card = document.createElement('div');
                 card.className = `game-card ${game.size}`;
                 card.setAttribute('onclick', `playGame('${game.title.replace(/'/g, "\\'")}', '${game.url}')`);
 
-                const thumb = document.createElement('div');
-                thumb.className = 'game-thumb';
-                thumb.innerHTML = `${game.emoji}<br><br>${game.title}`;
-                card.appendChild(thumb);
+                const image = document.createElement('img');
+                image.src = game.img || 'https://images.unsplash.com/photo-1551103782-8ab07afd45c1?w=400';
+                image.alt = game.title;
+                image.loading = "lazy";
+                card.appendChild(image);
 
-                const delBtn = document.createElement('button');
-                delBtn.className = 'delete-game-btn';
-                delBtn.innerHTML = '✖';
-                delBtn.style.display = isAdmin ? 'flex' : 'none';
-                delBtn.setAttribute('onclick', `event.stopPropagation(); deleteGame(${index});`);
-                card.appendChild(delBtn);
+                const titleBar = document.createElement('div');
+                titleBar.className = 'game-title-bar';
+                titleBar.innerText = game.title;
+                card.appendChild(titleBar);
 
                 gameGrid.appendChild(card);
+            });
+            manageSearch(); // Sync delete list
+        }
+
+        // LIVE SEARCH DELETE LOGIC
+        function manageSearch() {
+            const query = document.getElementById('searchDelInput').value.toLowerCase().trim();
+            deleteResultsList.innerHTML = '';
+            
+            const filtered = myGames.filter(g => g.title.toLowerCase().includes(query));
+            
+            if(filtered.length === 0) {
+                deleteResultsList.innerHTML = `<div style="font-size:0.8rem; padding:10px; color:#64748b; text-align:center;">No games match search.</div>`;
+                return;
+            }
+
+            filtered.forEach((game) => {
+                // Find actual index in primary array
+                const realIndex = myGames.findIndex(g => g.title === game.title && g.url === game.url);
+                
+                const item = document.createElement('div');
+                item.className = 'delete-item';
+                item.innerHTML = `
+                    <span>${game.title}</span>
+                    <button class="del-action-btn" onclick="deleteGame(${realIndex})">Delete</button>
+                `;
+                deleteResultsList.appendChild(item);
             });
         }
 
         function handleCredentialResponse(response) {
             const responsePayload = jwt_decode(response.credential);
-            
             document.getElementById('googleBtn').style.display = 'none';
             document.getElementById('userMenu').style.display = 'flex';
             document.getElementById('userImg').src = responsePayload.picture;
@@ -367,9 +351,6 @@
             if (responsePayload.email === ADMIN_EMAIL) {
                 isAdmin = true;
                 adminPanel.style.display = 'block';
-            } else {
-                isAdmin = false;
-                adminPanel.style.display = 'none';
             }
             renderGrid();
         }
@@ -386,25 +367,25 @@
         function addNewGame() {
             const title = document.getElementById('newTitle').value.trim();
             const url = document.getElementById('newUrl').value.trim();
-            const emoji = document.getElementById('newEmoji').value.trim() || '🎮';
+            const img = document.getElementById('newImg').value.trim();
             const size = document.getElementById('newSize').value;
 
             if (!title || !url) {
-                alert('Please fill in both Title and Embed URL fields.');
+                alert('Title and Game URL are required!');
                 return;
             }
 
-            myGames.push({ title, url, emoji, size });
+            myGames.push({ title, url, img, size });
             localStorage.setItem('anplays_games', JSON.stringify(myGames));
             renderGrid();
 
             document.getElementById('newTitle').value = '';
             document.getElementById('newUrl').value = '';
-            document.getElementById('newEmoji').value = '';
+            document.getElementById('newImg').value = '';
         }
 
         function deleteGame(index) {
-            if (confirm(`Are you sure you want to delete "${myGames[index].title}"?`)) {
+            if (confirm(`Delete "${myGames[index].title}" permanently?`)) {
                 myGames.splice(index, 1);
                 localStorage.setItem('anplays_games', JSON.stringify(myGames));
                 renderGrid();
@@ -416,6 +397,8 @@
             gameFrame.src = url;
             playerContainer.style.display = 'block';
             togglePause(false);
+            
+            // Auto-scroll to top so mobile screens center perfectly on the player
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
